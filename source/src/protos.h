@@ -664,7 +664,7 @@ extern char *lang;
 extern SDL_Window *screen;
 extern int colorbits, depthbits, stencilbits;
 
-extern void keyrepeat(bool on);
+extern bool keyrepeat;
 extern bool interceptkey(int sym);
 extern bool inmainloop;
 

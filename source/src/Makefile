@@ -27,10 +27,10 @@ endif
 
 ifneq (,$(findstring clang,$(CXX)))
 	CXXFLAGS= -O3 -fomit-frame-pointer
-	override CXXFLAGS+= -Wall -fsigned-char -fno-strict-aliasing
+	override CXXFLAGS+= -Wall -fsigned-char
 else
 	CXXFLAGS= -O3 -fomit-frame-pointer
-	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic -Wno-format-zero-length -fno-strict-aliasing
+	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic -Wno-format-zero-length
 endif
 
 INCLUDES= -I. -Ibot -I../enet/include
@@ -50,7 +50,7 @@ CLIENT_LIBS= -mwindows -L../lib -lSDL2 -lSDL2_image -lzdll -lopengl32 -lenet -lO
 else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
 CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl2-config --cflags` -idirafter ../include
-CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl2-config --libs` -lSDL2_image -lz -lGL -lopenal -lvorbisfile
+CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) `sdl2-config --libs` -lSDL2_image -lz -lGL -lopenal -lvorbisfile
 endif
 
 CLIENT_OBJS= \
@@ -161,6 +161,9 @@ mrproper: clean ../enet/Makefile
 %.h.gch: %.h
 	$(CXX) $(CXXFLAGS) -x c++-header -o $@.tmp $(subst .h.gch,.h,$@)
 	$(MV) $@.tmp $@
+
+rendermodel.o: rendermodel.cpp
+	$(CXX) $(CXXFLAGS) -fno-strict-aliasing -c -o $@ $(subst .o,.cpp,$@)
 
 %-standalone.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(subst -standalone.o,.cpp,$@)

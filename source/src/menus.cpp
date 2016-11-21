@@ -65,7 +65,7 @@ inline gmenu *setcurmenu(gmenu *newcurmenu)      // only change curmenu through 
 {
     curmenu = newcurmenu;
     extern bool saycommandon;
-    if(!editmode && !saycommandon) keyrepeat(curmenu && curmenu->allowinput && !curmenu->hotkeys);
+    if(!editmode && !saycommandon) keyrepeat = curmenu && curmenu->allowinput && !curmenu->hotkeys;
     return curmenu;
 }
 

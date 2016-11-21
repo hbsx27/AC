@@ -309,7 +309,7 @@ void saycommand(char *init)                         // turns input to the comman
     saycommandon = (init!=NULL);
     setscope(false);
     setburst(false);
-    if(!editmode) keyrepeat(saycommandon);
+    if(!editmode) keyrepeat = saycommandon;
     copystring(cmdline.buf, init ? escapestring(init, false, true) : "");
     DELETEA(cmdaction);
     DELETEA(cmdprompt);
@@ -596,10 +596,10 @@ void writebinds(stream *f)
 
 bool textinputbuffer::text(const char *c)
 {
-    int buflen = strlen(buf);
+    int buflen = (int)strlen(buf);
     if(buflen >= maxlen()) return false;
-    int clen = strlen(c);
-    if(buflen+clen < sizeof(buf))
+    int clen = (int)strlen(c);
+    if(buflen+clen < (int)sizeof(buf))
     {
         if(pos < 0) strncpy(buf + buflen, c, clen);
         else

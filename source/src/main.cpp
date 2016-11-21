@@ -683,12 +683,7 @@ void fpsrange(int *low, int *high)
 
 COMMAND(fpsrange, "ii");
 
-void keyrepeat(bool on)
-{
-    // FIXME SDL2: implement this
-    //SDL_EnableKeyRepeat(on ? SDL_DEFAULT_REPEAT_DELAY : 0,
-    //                         SDL_DEFAULT_REPEAT_INTERVAL);
-}
+bool keyrepeat = false;
 
 vector<SDL_Event> events;
 
@@ -779,7 +774,7 @@ static int ignoremouse = 5;
 void checkinput()
 {
     SDL_Event event;
-    int lasttype = 0, lastbut = 0;
+    Uint32 lasttype = 0, lastbut = 0;
     int tdx=0,tdy=0;
     while(events.length() || SDL_PollEvent(&event))
     {
@@ -811,9 +806,7 @@ void checkinput()
                 }
                 else
                 {
-                    //keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode, event.key.keysym.mod);
-                    // FIXME console input broken here
-                    keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, SDL_GetModState());
+                    if(!event.key.repeat || keyrepeat) keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, (SDL_Keymod)event.key.keysym.mod);
                 }
                 break;
 
@@ -1231,7 +1224,6 @@ int main(int argc, char **argv)
     SDL_SetWindowIcon(screen, icon);
 #endif
 
-    keyrepeat(false);
     SDL_ShowCursor(0);
 
     initlog("gl");
