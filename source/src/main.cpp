@@ -456,33 +456,43 @@ void setdesktopres()
 
 COMMAND(setdesktopres, "");
 
-int SDL_SetGamma(float r, float g, float b)
+int setgamma(int newgamma) // replacement for SDL_SetGamma
 {
-    // FIXME SDL2: implement gamma and get rid of this function
-    // this is here only to keep the compiler happy.
-    return -1;
+    static Uint16 ramp[256];
+
+    double g = 100.0f / double(newgamma);
+    loopi(256)
+    {
+        int val = (int)(pow((double)i/256.0, g) * 65535.0 + 0.5);
+        if(val > 65535) val = 65535;
+        ramp[i] = (Uint16)val;
+    }
+    return SDL_SetWindowGammaRamp(screen, ramp, ramp, ramp);
 }
 
 static int curgamma = 100;
+
 VARNFP(gamma, vgamma, 30, 100, 300,
 {
-    if(vgamma == curgamma) return;
-    curgamma = vgamma;
-    float f = vgamma/100.0f;
-    if(SDL_SetGamma(f,f,f)==-1) conoutf("Could not set gamma: %s", SDL_GetError());
+    if(vgamma != curgamma)
+    {
+        if(setgamma(vgamma) == -1) conoutf("Could not set gamma: %s", SDL_GetError());
+        curgamma = vgamma;
+    }
 });
 
 void cleargamma()
 {
-    if(curgamma != 100) SDL_SetGamma(1, 1, 1);
+    if(curgamma != 100) setgamma(100);
 }
 
 void restoregamma()
 {
-    if(curgamma == 100) return;
-    float f = curgamma/100.0f;
-    SDL_SetGamma(1, 1, 1);
-    SDL_SetGamma(f, f, f);
+    if(curgamma != 100)
+    {
+        setgamma(100);
+        setgamma(curgamma);
+    }
 }
 
 void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
@@ -512,7 +522,7 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
     //    hasbpp = SDL_VideoModeOK(modes!=(SDL_Rect **)-1 ? modes[0]->w : scr_w, modes!=(SDL_Rect **)-1 ? modes[0]->h : scr_h, colorbits, SDL_OPENGL|flags)==colorbits;
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    if(vsync>=0) SDL_GL_SetSwapInterval(1);
+    if(vsync>=0) SDL_GL_SetSwapInterval(vsync);
 
     static int configs[] =
     {
@@ -775,7 +785,6 @@ void checkinput()
     {
         if(events.length()) event = events.remove(0);
 
-        extern void textinput(const char *);
         switch(event.type)
         {
             case SDL_QUIT:
@@ -1052,10 +1061,9 @@ void initclientlog()  // rotate old logfiles and create new one
 /// text input is enabled (text field in menu item active, chat prompt...)
 int textinputfilter(void *userdata, SDL_Event *event)
 {
-    extern bool saycommandon;
-    extern bool menutextinputon();
+    extern bool saycommandon, menutextinputon;
     if(event->type != SDL_TEXTINPUT) return 1;
-    return (saycommandon || menutextinputon()) ? 1 : 0;
+    return (saycommandon || menutextinputon) ? 1 : 0;
 }
 
 int main(int argc, char **argv)

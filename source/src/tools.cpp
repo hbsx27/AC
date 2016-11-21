@@ -897,13 +897,13 @@ static int sl_thread_indir(void *info)
     return res;
 }
 
-void *sl_createthread(int (*fn)(void *), void *data)
+void *sl_createthread(int (*fn)(void *), void *data, const char *name)
 {
     sl_threadinfo *ti = new sl_threadinfo;
     ti->data = data;
     ti->fn = fn;
     ti->done = 0;
-    ti->handle = SDL_CreateThread(sl_thread_indir, NULL, ti);
+    ti->handle = SDL_CreateThread(sl_thread_indir, name, ti);
     return (void *) ti;
 }
 
@@ -952,13 +952,14 @@ static void *sl_thread_indir(void *info)
     return &ti->res;
 }
 
-void *sl_createthread(int (*fn)(void *), void *data)
+void *sl_createthread(int (*fn)(void *), void *data, const char *name)
 {
     sl_threadinfo *ti = new sl_threadinfo;
     ti->data = data;
     ti->fn = fn;
     ti->done = 0;
     pthread_create(&(ti->handle), NULL, sl_thread_indir, ti);
+    if(name) pthread_setname_np(ti->handle, name);
     return (void *) ti;
 }
 
